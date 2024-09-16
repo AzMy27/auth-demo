@@ -7,20 +7,15 @@ router.get("/", (req, res) => {
   res.render("login");
 });
 
-router.post("", async (req, res) => {
+router.post("/", async (req, res) => {
   const { username, password } = req.body;
-  const user = await User.findOne({ username });
+  const user = await User.findByCredentials(
+    username,
+    password
+  );
   if (user) {
-    const isMatch = bcrypt.compare(
-      password,
-      user.password
-    );
-    if (isMatch) {
-      req.session.user_id = user._id;
-      res.redirect("/admin");
-    } else {
-      res.redirect("/login");
-    }
+    req.session.user_id = user._id;
+    res.redirect("/admin");
   } else {
     res.redirect("/login");
   }

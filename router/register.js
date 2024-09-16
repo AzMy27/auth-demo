@@ -9,15 +9,9 @@ router.get("/", (req, res) => {
 
 router.post("/", async (req, res) => {
   const { username, password } = req.body;
-  const hashedPassword = bcrypt.hashSync(
-    password,
-    10
-  );
-  const user = new User({
-    username,
-    password: hashedPassword,
-  });
+  const user = new User({ username, password });
   await user.save();
+  req.session.user_id = user._id;
   res.redirect("/");
 });
 

@@ -34,12 +34,12 @@ const auth = (req, res, next) => {
   next();
 };
 
-const authLog = (req, res, next) => {
-  if (!req.session.user_id) {
-    next();
-  }
-  return res.redirect("/admin");
-};
+// const authLog = (req, res, next) => {
+//   if (!req.session.user_id) {
+//     next();
+//   }
+//   return res.redirect("/admin");
+// };
 
 app.get("/", (req, res) => {
   res.send("Homepage");
@@ -49,11 +49,7 @@ app.use(
   "/register",
   require("./router/register")
 );
-app.use(
-  "/login",
-  authLog,
-  require("./router/login")
-);
+app.use("/login", require("./router/login"));
 app.use(
   "/admin",
   auth,
