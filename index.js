@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const session = require("express-session");
 const bcrypt = require("bcrypt");
 const User = require("./models/user");
 
@@ -17,43 +18,57 @@ mongoose
 
 app.set("view engine", "ejs");
 app.set("views", "views");
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  session({
+    secret: "notasecret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+const auth = (req, res, next) => {
+  if (!req.session.user_id) {
+    return res.redirect("/login");
+  }
+  next();
+};
+
+const authLog = (req, res, next) => {
+  if (!req.session.user_id) {
+    next();
+  }
+  return res.redirect("/admin");
+};
 
 app.get("/", (req, res) => {
-  res.render("Homepage");
+  res.send("Homepage");
 });
 
-app.use(express.urlencoded({ extended: true }));
-
-// app.use(
-//   "/register",
-//   require("./router/register")
-// );
-
-// app.use("/admin", require("./router/admin"));
-
-app.get("/register", (req, res) => {
-  res.render("register");
-});
-
-app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
-  const hashedPassword = bcrypt.hashAsync(
-    password,
-    10
-  );
-  const user = new User({
-    username,
-    password: hashedPassword,
-  });
-  await user.save();
-  res.redirect("/");
-});
-
-app.get("/admin", (req, res) => {
-  res.send(
-    "Hanya admin yang dapat mengakses halaman ini"
-  );
-});
+app.use(
+  "/register",
+  require("./router/register")
+);
+app.use(
+  "/login",
+  authLog,
+  require("./router/login")
+);
+app.use(
+  "/admin",
+  auth,
+  require("./router/admin")
+);
+app.use(
+  "/profile/settings",
+  auth,
+  require("./router/profile")
+);
+app.use(
+  "/logout",
+  auth,
+  require("./router/logout")
+);
 
 app.listen(port, () => {
   console.log(
